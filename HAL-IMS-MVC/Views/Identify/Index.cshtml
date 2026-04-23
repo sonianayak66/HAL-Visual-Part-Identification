@@ -1,0 +1,286 @@
+@model HAL_IMS_MVC.Models.IdentifyViewModel
+@{
+    ViewData["Title"] = "Identify Part";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Identify Part</h1>
+    <p class="page-sub">Upload an image or search by part number</p>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <h2 class="card-title">Query</h2>
+    </div>
+
+    <div class="card-body">
+
+        <form method="post" enctype="multipart/form-data" id="id-form">
+            @Html.AntiForgeryToken()
+
+            <!-- SEARCH BY PART NUMBER -->
+            <div class="field" style="margin-bottom:18px">
+                <label class="label">Search by Part Number</label>
+                <input type="text"
+                       name="partNumberSearch"
+                       class="input"
+                       value="@Model.PartNumberSearch"
+                       placeholder="Enter part number" />
+            </div>
+
+            <div class="btn-row" style="margin-bottom:15px">
+                <button type="submit" class="btn btn-primary">
+                    🔎 Identify by Part Number
+                </button>
+            </div>
+
+            <div style="text-align:center;margin:10px 0;font-weight:600">OR</div>
+
+            <!-- MODE TOGGLE -->
+            <div class="mode-toggle">
+                <button type="button" class="mode-btn active" id="mt-upload" onclick="switchMode('upload')">
+                    📁 Upload File
+                </button>
+                <button type="button" class="mode-btn" id="mt-cam" onclick="switchMode('cam')">
+                    📷 Webcam
+                </button>
+            </div>
+
+            <!-- UPLOAD PANEL -->
+            <div id="panel-upload">
+                <div class="dropzone" id="dz" onclick="document.getElementById('id-file').click()">
+                    <div class="dz-icon">📂</div>
+                    <div class="dz-label">Click to choose an image or drag & drop</div>
+                    <div class="dz-hint">JPG · PNG · BMP · WEBP</div>
+                </div>
+
+                <input type="file" id="id-file" name="file" accept="image/*" onchange="previewFile(event)" />
+            </div>
+
+            <!-- WEBCAM PANEL -->
+            <div id="panel-cam" style="display:none">
+                <video id="cam-video" autoplay playsinline muted></video>
+                <canvas id="cam-canvas" style="display:none"></canvas>
+
+                <div class="btn-row" style="margin-top:10px">
+                    <button type="button" class="btn btn-green" id="cam-start" onclick="camStart()">▶ Start</button>
+                    <button type="button" class="btn btn-primary" id="cam-capture" onclick="camCapture()" disabled>◉ Capture</button>
+                    <button type="button" class="btn btn-danger" id="cam-stop" onclick="camStop()" disabled>■ Stop</button>
+                </div>
+            </div>
+
+            <!-- IMAGE PREVIEW -->
+            <div id="preview-wrap" style="display:none; margin-top:18px">
+                <img id="preview-img" class="preview-img" src="" alt="preview" />
+
+                <div class="divider"></div>
+
+                <div class="form-label-sm">Optional Details</div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label class="label">Part Number (optional)</label>
+                        <input type="text"
+                               name="partNumber"
+                               class="input"
+                               value="@Model.PartNumber"
+                               placeholder="e.g. AL31-BOLT-042" />
+                    </div>
+
+                    <div class="field field-full">
+                        <label class="label">Notes</label>
+                        <textarea name="description"
+                                  class="input textarea"
+                                  placeholder="Condition, location, serial number...">@Model.Description</textarea>
+                    </div>
+                </div>
+
+                <div class="btn-row" style="margin-top:18px">
+                    <button type="submit" class="btn btn-primary" id="b-identify">
+                        🔍 Run Identification
+                    </button>
+
+                    <button type="button" class="btn btn-ghost" onclick="clearForm()">✕ Clear</button>
+                </div>
+            </div>
+
+        </form>
+
+        @if (Model.Error != null)
+        {
+            <div class="alert alert-error" style="margin-top:16px">
+                @Model.Error
+            </div>
+        }
+
+    </div>
+</div>
+
+
+<!-- RESULTS -->
+@if (Model.Results != null && Model.Results.Any())
+{
+    var top = Model.Results.First();
+
+    <div class="card">
+        <div class="card-head">
+            <h2 class="card-title">Result</h2>
+        </div>
+
+        <div class="card-body">
+
+            <div class="result-item result-top">
+
+                <div class="result-rank">1</div>
+
+                <div class="result-body">
+
+                    <!-- FIX: show component name if part is unknown -->
+                    <div class="result-name">
+                        @(string.IsNullOrEmpty(top.ComponentName) ? top.PartLabel : top.ComponentName)
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(top.PartLabel) && top.PartLabel != "Unknown Part")
+                    {
+                        <div class="result-component">
+                            Part Number: @top.PartLabel
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(top.ComponentName))
+                    {
+                        <div class="result-component">
+                            Component: @top.ComponentName
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(top.Description))
+                    {
+                        <div class="result-desc">
+                            Description: @top.Description
+                        </div>
+                    }
+
+                    <div class="result-meta">
+                        <span class="result-pct">@top.ConfidencePct% match</span>
+                        <span class="badge @top.BadgeClass">@top.Verdict</span>
+                    </div>
+
+                    <!-- REFERENCE IMAGES -->
+                    @if (Model.ImagePaths != null && Model.ImagePaths.Any())
+                    {
+                        <div style="margin-top:12px;font-weight:600">Reference Images</div>
+
+                        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+
+                            @foreach (var img in Model.ImagePaths)
+                            {
+                                <img src="@img"
+                                     style="width:120px;height:120px;object-fit:cover;border-radius:8px" />
+                            }
+
+                        </div>
+                    }
+
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width:@top.ConfidencePct%;background:@top.BarColor">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+
+    <script>
+
+        let camStream = null;
+
+        function switchMode(mode) {
+            document.getElementById('mt-upload').classList.toggle('active', mode === 'upload');
+            document.getElementById('mt-cam').classList.toggle('active', mode === 'cam');
+
+            document.getElementById('panel-upload').style.display = mode === 'upload' ? '' : 'none';
+            document.getElementById('panel-cam').style.display = mode === 'cam' ? '' : 'none';
+
+            clearForm();
+        }
+
+        function previewFile(e) {
+            const f = e.target.files[0];
+
+            if (!f) return;
+
+            document.getElementById('preview-img').src = URL.createObjectURL(f);
+            document.getElementById('preview-wrap').style.display = '';
+        }
+
+        async function camStart() {
+            try {
+                camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+                document.getElementById('cam-video').srcObject = camStream;
+
+                document.getElementById('cam-capture').disabled = false;
+                document.getElementById('cam-stop').disabled = false;
+                document.getElementById('cam-start').disabled = true;
+            }
+            catch (e) {
+                alert("Camera error: " + e.message);
+            }
+        }
+
+        function camStop() {
+            if (camStream) {
+                camStream.getTracks().forEach(t => t.stop());
+                camStream = null;
+            }
+
+            document.getElementById('cam-video').srcObject = null;
+
+            document.getElementById('cam-capture').disabled = true;
+            document.getElementById('cam-stop').disabled = true;
+            document.getElementById('cam-start').disabled = false;
+        }
+
+        function camCapture() {
+            const video = document.getElementById('cam-video');
+            const canvas = document.getElementById('cam-canvas');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            canvas.toBlob(blob => {
+
+                const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+
+                const dt = new DataTransfer();
+                dt.items.add(file);
+
+                document.getElementById('id-file').files = dt.files;
+
+                document.getElementById('preview-img').src = URL.createObjectURL(blob);
+                document.getElementById('preview-wrap').style.display = '';
+
+            }, 'image/jpeg', 0.95);
+        }
+
+        function clearForm() {
+            document.getElementById('preview-wrap').style.display = 'none';
+            document.getElementById('preview-img').src = '';
+            document.getElementById('id-file').value = '';
+
+            if (camStream) camStop();
+        }
+
+    </script>
+
+}

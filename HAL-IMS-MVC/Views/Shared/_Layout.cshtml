@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HAL AI-IMS — @ViewData["Title"]</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="~/css/site.css"/>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">⚙</div>
+        <div>
+          <div class="brand-name">HAL AI-IMS</div>
+          <div class="brand-sub">AL31FP Component Identification</div>
+        </div>
+      </div>
+      <div class="sys-badge">
+        <span class="sys-dot"></span>
+        System Online
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Identify" ? "active" : "")"
+         href="/Identify">
+        <span class="nav-icon">🔍</span> Identify Part
+      </a>
+      <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Assign" ? "active" : "")"
+         href="/Assign">
+        <span class="nav-icon">🏷</span> Assign Part
+      </a>
+      <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Parts" ? "active" : "")"
+         href="/Parts">
+        <span class="nav-icon">📋</span> Parts Registry
+      </a>
+    </div>
+  </nav>
+
+  <main class="site-main">
+    @RenderBody()
+  </main>
+
+  <footer class="site-footer">
+    EfficientNet-B0 + FAISS &nbsp;·&nbsp; HAL AI-IMS v2.0
+  </footer>
+
+  <script src="~/js/site.js"></script>
+  @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

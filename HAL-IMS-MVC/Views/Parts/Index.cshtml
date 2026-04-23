@@ -1,0 +1,31 @@
+@model PartsResponse
+
+<div class="page-header">
+    <h1 class="page-title">Parts Registry</h1>
+</div>
+
+@if (Model.Parts.Count == 0)
+{
+    <p>No parts available.</p>
+}
+
+@foreach (var part in Model.Parts)
+{
+    <div class="card" style="margin-bottom:20px">
+
+        <div class="card-head">
+            <h3>Part Number: @part.PartNumber</h3>
+        </div>
+
+        <div class="card-body">
+
+            <p><strong>Component:</strong> @part.ComponentName</p>
+
+            <p><strong>Description:</strong> @part.Description</p>
+
+            <p><strong>Images stored:</strong> @part.ImageCount</p>
+
+        </div>
+
+    </div>
+}

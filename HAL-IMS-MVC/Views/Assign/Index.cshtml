@@ -1,0 +1,318 @@
+@model AssignViewModel
+@{
+    ViewData["Title"] = "Assign Part";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Assign Part</h1>
+    <p class="page-sub">Select images, assign a part number and index them instantly</p>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <h2 class="card-title">Capture & Register</h2>
+    </div>
+
+    <div class="card-body">
+
+        <form method="post" enctype="multipart/form-data" id="assign-form">
+            @Html.AntiForgeryToken()
+
+            <div class="field-grid">
+
+                <div class="field">
+                    <label class="label">Part Number *</label>
+                    <input type="text"
+                           name="partNumber"
+                           id="pnum"
+                           class="input"
+                           placeholder="e.g. AL31-BOLT-042"
+                           autocomplete="off"
+                           oninput="refreshBtn()" />
+                </div>
+
+                <div class="field field-full">
+                    <label class="label">Description / Notes</label>
+<textarea name="description"
+          class="input textarea"
+          placeholder="Condition, location, serial number..."></textarea>
+                </div>
+
+            </div>
+
+            <!-- MODE TOGGLE -->
+
+            <div class="mode-toggle" style="margin-top:16px">
+
+                <button type="button"
+                        class="mode-btn active"
+                        id="mt-upload"
+                        onclick="aMode('upload')">
+                    📁 Upload Files
+                </button>
+
+                <button type="button"
+                        class="mode-btn"
+                        id="mt-cam"
+                        onclick="aMode('cam')">
+                    📷 Webcam
+                </button>
+
+            </div>
+
+            <!-- FILE UPLOAD -->
+
+            <div id="ap-upload">
+
+                <div class="dropzone"
+                     id="a-dz"
+                     onclick="document.getElementById('a-file').click()">
+
+                    <div class="dz-icon">📂</div>
+
+                    <div class="dz-label">
+                        Select multiple images of this part
+                    </div>
+
+                    <div class="dz-hint">
+                        All angles welcome · JPG · PNG · BMP · WEBP
+                    </div>
+
+                </div>
+
+                <input type="file"
+                       id="a-file"
+                       name="files"
+                       accept="image/*"
+                       multiple
+                       onchange="aFilePick(event)" />
+
+            </div>
+
+            <!-- WEBCAM -->
+
+            <div id="ap-cam" style="display:none">
+
+                <video id="a-vid" autoplay playsinline muted></video>
+
+                <canvas id="a-cvs" style="display:none"></canvas>
+
+                <div class="btn-row" style="margin-top:10px">
+
+                    <button type="button"
+                            class="btn btn-green"
+                            id="a-start"
+                            onclick="aCamStart()">
+                        ▶ Start
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-primary"
+                            id="a-capture"
+                            onclick="aCamCapture()"
+                            disabled>
+                        ◉ Capture
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-danger"
+                            id="a-stop"
+                            onclick="aCamStop()"
+                            disabled>
+                        ■ Stop
+                    </button>
+
+                </div>
+
+                <p class="hint-text" style="margin-top:8px">
+                    Each capture adds one image to the batch below.
+                </p>
+
+            </div>
+
+            <!-- THUMBNAILS -->
+
+            <div id="a-thumbs" class="thumb-grid"></div>
+            <div id="a-count" class="img-count"></div>
+
+            <div class="btn-row" style="margin-top:18px">
+
+                <button type="submit"
+                        class="btn btn-warning"
+                        id="b-assign"
+                        disabled>
+                    🏷 Assign & Index
+                </button>
+
+                <button type="button"
+                        class="btn btn-ghost"
+                        onclick="aClear()">
+                    ✕ Clear
+                </button>
+
+            </div>
+
+        </form>
+
+        @if (Model.Error != null)
+        {
+            <div class="alert alert-error" style="margin-top:16px">@Model.Error</div>
+        }
+
+        @if (Model.SuccessMessage != null)
+        {
+            <div class="alert alert-success" style="margin-top:16px">@Model.SuccessMessage</div>
+        }
+
+        @if (Model.WarningMessage != null)
+        {
+            <div class="alert alert-warning" style="margin-top:8px">@Model.WarningMessage</div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+
+        let aFileList = [];
+        let aCamStream = null;
+
+        function aMode(mode) {
+            document.getElementById('mt-upload').classList.toggle('active', mode === 'upload');
+            document.getElementById('mt-cam').classList.toggle('active', mode === 'cam');
+
+            document.getElementById('ap-upload').style.display = mode === 'upload' ? '' : 'none';
+            document.getElementById('ap-cam').style.display = mode === 'cam' ? '' : 'none';
+        }
+
+        async function aCamStart() {
+            try {
+                aCamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+                document.getElementById('a-vid').srcObject = aCamStream;
+
+                document.getElementById('a-capture').disabled = false;
+                document.getElementById('a-stop').disabled = false;
+                document.getElementById('a-start').disabled = true;
+            }
+            catch (e) {
+                alert("Camera error: " + e.message);
+            }
+        }
+
+        function aCamStop() {
+            if (aCamStream) {
+                aCamStream.getTracks().forEach(t => t.stop());
+                aCamStream = null;
+            }
+
+            document.getElementById('a-vid').srcObject = null;
+
+            document.getElementById('a-capture').disabled = true;
+            document.getElementById('a-stop').disabled = true;
+            document.getElementById('a-start').disabled = false;
+        }
+
+        function aCamCapture() {
+            const video = document.getElementById('a-vid');
+            const canvas = document.getElementById('a-cvs');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            canvas.toBlob(blob => {
+                const name = "capture_" + Date.now() + ".jpg";
+
+                const file = new File([blob], name, { type: "image/jpeg" });
+
+                aFileList.push(file);
+
+                renderThumbs();
+                refreshBtn();
+
+            }, "image/jpeg", 0.95);
+        }
+
+        function aFilePick(e) {
+            const fresh = Array.from(e.target.files).filter(f => f.type.startsWith("image/"));
+
+            aFileList.push(...fresh);
+
+            renderThumbs();
+            refreshBtn();
+        }
+
+        function renderThumbs() {
+            const grid = document.getElementById("a-thumbs");
+
+            grid.innerHTML = "";
+
+            aFileList.forEach((f, i) => {
+                const d = document.createElement("div");
+                d.className = "thumb";
+
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(f);
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "thumb-del";
+                btn.textContent = "✕";
+
+                btn.onclick = () => {
+                    aFileList.splice(i, 1);
+                    renderThumbs();
+                    refreshBtn();
+                };
+
+                d.appendChild(img);
+                d.appendChild(btn);
+
+                grid.appendChild(d);
+            });
+
+            document.getElementById("a-count").textContent =
+                aFileList.length
+                    ? aFileList.length + " image" + (aFileList.length > 1 ? "s" : "") + " selected"
+                    : "";
+
+            const dt = new DataTransfer();
+
+            aFileList.forEach(f => dt.items.add(f));
+
+            document.getElementById("a-file").files = dt.files;
+        }
+
+        function refreshBtn() {
+            const pn = document.getElementById("pnum").value.trim();
+
+            document.getElementById("b-assign").disabled =
+                !(pn && aFileList.length > 0);
+        }
+
+        function aClear() {
+            aFileList = [];
+
+            document.getElementById("pnum").value = "";
+            document.getElementById("a-file").value = "";
+
+            renderThumbs();
+            refreshBtn();
+
+            if (aCamStream) aCamStop();
+        }
+
+        document.getElementById("assign-form").addEventListener("submit", () => {
+            const btn = document.getElementById("b-assign");
+
+            btn.disabled = true;
+            btn.textContent = "⏳ Indexing...";
+        });
+
+    </script>
+
+}

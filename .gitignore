@@ -1,0 +1,50 @@
+# ---------- .NET / Visual Studio ----------
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.vsidx
+Debug/
+Release/
+x64/
+x86/
+[Ll]og/
+[Ll]ogs/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.env
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---------- OS ----------
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# ---------- IDE ----------
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ---------- Project-specific ----------
+# Large model cache (torch hub downloads DINOv2 on first run)
+torch_hub_cache/
+*.pt
+*.pth
+
+# Uncomment if you don't want to commit generated indices / augmented data
+# haltemp/embeddings/*.faiss
+# haltemp/embeddings/*.npy
+# haltemp/dataset_aug/

@@ -1,0 +1,11 @@
+pip install torch torchvision faiss-cpu opencv-python pillow numpy
+
+python build_index.py
+
+python search.py
+
+pip install opencv-python
+
+python camera_search.py
+
+uvicorn api_server:app --reload
