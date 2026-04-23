@@ -124,7 +124,11 @@ Hit `GET /rebuild_index` on the FastAPI service, or use the **Parts → Rebuild 
 
 A full walkthrough of the system — identify, assign, and part-lookup flows.
 
-🎥 **[Watch the demo video](docs/demo.mp4)** *(click to download / play — 24 MB)*
+<video src="https://github.com/sonianayak66/HAL-Visual-Part-Identification/releases/download/v1.0/demo.mp4" controls width="100%"></video>
+
+https://github.com/sonianayak66/HAL-Visual-Part-Identification/releases/download/v1.0/demo.mp4
+
+> If the player above does not render, [click here to watch](https://github.com/sonianayak66/HAL-Visual-Part-Identification/releases/download/v1.0/demo.mp4).
 
 <details>
 <summary>What the demo shows</summary>
