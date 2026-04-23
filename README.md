@@ -122,10 +122,21 @@ Hit `GET /rebuild_index` on the FastAPI service, or use the **Parts → Rebuild 
 
 ## Demo
 
-![Demo](docs/demo.gif)
+A full walkthrough of the system — identify, assign, and part-lookup flows.
 
-> See `docs/demo.mp4` for the full walkthrough.
-> *(Video link will be added here.)*
+🎥 **[Watch the demo video](docs/demo.mp4)** *(click to download / play — 24 MB)*
+
+<details>
+<summary>What the demo shows</summary>
+
+- Registering a new part (Assign module) with multiple images
+- Auto-classification of component type via k-NN majority vote
+- Identifying a part by uploading an image
+- Identifying a part via live webcam capture
+- Part-number lookup returning full metadata
+- Confidence scoring (HIGH / MEDIUM / LOW verdicts)
+
+</details>
 
 ---
 
