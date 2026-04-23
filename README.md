@@ -2,6 +2,8 @@
 
 A full-stack aerospace **Inventory Management System (IMS)** for Hindustan Aeronautics Limited (HAL) that identifies mechanical components from an uploaded image, a live webcam capture, or a part-number lookup — powered by a **DINOv2 Vision Transformer** and **FAISS** vector similarity search.
 
+> Built during my internship at **Twilight Systems Tech Pvt Ltd** as a client engagement for HAL.
+
 ---
 
 ## Architecture
@@ -152,6 +154,7 @@ https://github.com/sonianayak66/HAL-Visual-Part-Identification/releases/download
 
 ---
 
-## License
+## Attribution
 
-Academic / portfolio project.
+Developed during my internship at **Twilight Systems Tech Pvt Ltd**.
+All rights belong to the company and its client (HAL). This repository is published as a portfolio reference for the author's own work on the project.
